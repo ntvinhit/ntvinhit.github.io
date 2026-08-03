@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
+import { rehypeTweetEmbed } from './src/plugins/rehype-tweet-embed.ts';
 
 // Deploys to the user page root: https://ntvinhit.github.io/
 export default defineConfig({
@@ -14,6 +15,12 @@ export default defineConfig({
   // there (cover-image.JPG was moved to public/ for this reason).
   publicDir: 'public',
   integrations: [],
+  markdown: {
+    // Render `<figure data-tweet-id>` placeholders (emitted by the DraftJS
+    // converter for embedded X posts) as live X widget iframes. Applies to all
+    // markdown; posts never contain the placeholder so it is a no-op there.
+    rehypePlugins: [rehypeTweetEmbed],
+  },
   vite: {
     plugins: [tailwindcss()],
   },

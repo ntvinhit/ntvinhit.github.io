@@ -95,6 +95,10 @@ The mirrored text is the original article **verbatim**:
   to the X article conventions, and guaranteed to keep the wording
   byte-for-byte (§12). The converter is used by `add-reference.ts` and by the
   `--apply-converter` re-run hook.
+- Embedded X posts (`TWEET` entities) in the article are rendered by the
+  converter as a raw-HTML placeholder `<figure data-tweet-id="…">`, which the
+  reference page shows as a live X widget (see §12). Twemoji entities
+  (`TWEMOJI`) become an inline `<img>` of the Twemoji SVG — never collapsed.
 - Do not add your own commentary inside the body. If a note is genuinely
   needed, keep it to an HTML comment (`<!-- ... -->`), which never renders.
 
@@ -419,9 +423,11 @@ guessing):**
 - `DraftJsEntityRange` records — the atomic block's entity key (the record's
   `content_state:blocks:<n>:entity_ranges:0` id gives the owning block).
 - `DraftJsEntityMap` + `DraftJsEntity` records — DraftJS key → entity record
-  index → entity type (`MEDIA` / `DIVIDER` / `MARKDOWN`), in map order.
+  index → entity type (`MEDIA` / `DIVIDER` / `MARKDOWN` / `TWEET` / `TWEMOJI`), in map order.
 - `ArticleMediaKey` records — `media_id` for MEDIA entities (paired with the
   page's `ApiMedia` → `ApiImage` records for the CDN URL / local file).
+- `DraftJsEntityData` records for TWEET entities — the embedded post's
+  `tweet_id`, in map order; for TWEMOJI entities — the Twemoji SVG `url`.
 - `DraftJsBlockMention` records — mention spans; the record's
   `content_state:blocks:<n>:data:mentions:<m>` id gives the owning block.
 - `DraftJsInlineStyleRange` records — inline styles (currently only `Bold`).
@@ -442,7 +448,13 @@ guessing):**
 | `atomic` + `MEDIA`    | `![Image](/references/<slug>/<file>)` (from the resolved media map; a blank placeholder line when the media is not resolvable) |
 | `atomic` + `DIVIDER`  | `---`                                       |
 | `atomic` + `MARKDOWN` | the entity's fenced code block, verbatim from `entityData.markdown` |
+| `atomic` + `TWEET`    | `<figure data-tweet-id="…">` — raw-HTML placeholder for the embedded X post |
+| `atomic` + `TWEMOJI`  | `<img src="…abs.twimg.com/emoji/…" alt="emoji">` — the Twemoji SVG, kept inline |
 | `atomic` + unknown    | `---` (keeps the block's position)          |
+
+The `<figure data-tweet-id>` placeholder is rendered as the live X widget
+iframe by the rehype plugin `src/plugins/rehype-tweet-embed.ts` (registered in
+`astro.config.mjs`), with a "View on X" link as the no-JS fallback.
 
 **Inline pass on text blocks:**
 

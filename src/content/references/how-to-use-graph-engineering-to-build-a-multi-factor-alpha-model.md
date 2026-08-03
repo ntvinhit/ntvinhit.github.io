@@ -17,7 +17,6 @@ images_original: ["https://pbs.twimg.com/media/HN0qI8TaEAAVyg_.jpg", "https://pb
 cover_image: "/references/how-to-use-graph-engineering-to-build-a-multi-factor-alpha-model/HN0qI8TaEAAVyg_.jpg"
 ---
 
-
 I am going to break down exactly how to build a hedge fund grade multi-factor alpha model using graph engineering.
 
 Let's get straight to it.
@@ -43,7 +42,7 @@ That is why retail quants stick to single strategies and hedge funds print alpha
 
 Until now.
 
----
+<figure data-tweet-id="2074134246784921977"></figure>
 
 In my last two articles I walked through loop engineering and how to build a swarm of AI agents that hunts alpha 24/7. 
 

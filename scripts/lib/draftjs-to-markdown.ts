@@ -14,11 +14,13 @@
  *   - entity_map:    `__typename:"DraftJsEntityMap",key:"<k>",value:$R[…]={
  *                    __ref:"…:content_state:entity_map:<i>:value"}` — order
  *                    index `i` is the entity-record index.
- *   - Entities:      `__typename:"DraftJsEntity",type:"MEDIA|DIVIDER|MARKDOWN"`
+ *   - Entities:      `__typename:"DraftJsEntity",type:"MEDIA|DIVIDER|MARKDOWN|TWEET|TWEMOJI"`
  *                    in entity_map order. Their `data` record follows with:
  *                    MEDIA    → media_items → `ArticleMediaKey`,media_id:"…"
  *                    DIVIDER  → (all null)
  *                    MARKDOWN → `markdown:"<fenced code block>"` (escaped)
+ *                    TWEET    → `tweet_id:"…"` (an embedded X post)
+ *                    TWEMOJI  → `url:"…abs.twimg.com/emoji/…"` (an emoji SVG)
  *   - Mentions:      `__typename:"DraftJsBlockMention",from_index,text,to_index`
  *                    serialized with `__id:"…:content_state:blocks:<n>:data:
  *                    mentions:<m>"` — the owning block number is IN the id.
@@ -40,6 +42,12 @@
  *   atomic + MARKDOWN     → the entity's fenced code block (verbatim from
  *                           `entityData.markdown`; the block text is a single
  *                           space and is ignored)
+ *   atomic + TWEET        → `<figure data-tweet-id="…"></figure>` — a raw-HTML
+ *                           placeholder for an embedded X post. A rehype plugin
+ *                           (src/plugins/rehype-tweet-embed.ts) turns it into
+ *                           the live X widget iframe at render time.
+ *   atomic + TWEMOJI      → `<img src="…abs.twimg.com/emoji/…" alt="emoji">` —
+ *                           the Twemoji SVG, kept inline (no `---` collapse).
  *   atomic + unknown      → `---` (visual separator, keeps block position)
  *
  * Inline pass per text block (exactly what the convention specifies):
@@ -109,6 +117,11 @@ const MEDIA_ITEM_RE = /__typename:"ArticleMediaKey",media_id:"(\d+)"/g;
 /** MARKDOWN entity data records → their fenced code content (escaped). */
 const MARKDOWN_ENTITY_DATA_RE =
   /__typename:"DraftJsEntityData",caption:null,markdown:"((?:[^"\\]|\\.)*)"/g;
+/** TWEET entity data records → the embedded post's numeric id. */
+const TWEET_ID_RE = /__typename:"DraftJsEntityData",caption:[^}]*tweet_id:"(\d+)"/g;
+/** TWEMOJI entity data records → the Twemoji SVG URL. */
+const TWEMOJI_URL_RE =
+  /__typename:"DraftJsEntityData",caption:[^}]*url:"(https:\/\/abs\.twimg\.com\/emoji\/[^"]+)"/g;
 /** Mention records: the `blocks:<n>:data:mentions:<m>` id carries the block. */
 const MENTION_BLOCK_RE =
   /"client:[^"]*:content_state:blocks:(\d+):data:mentions:\d+":\$R\[\d+\]=\{__id:"[^"]*",__typename:"DraftJsBlockMention",from_index:(\d+),text:"([^"]*)",to_index:(\d+)\}/g;
@@ -133,6 +146,10 @@ export interface DraftJsParseResult {
   entityTypes: string[];
   /** Entity record index → media_id (only for MEDIA entities). */
   mediaIdByEntityRecord: Map<number, string>;
+  /** Entity record index → tweet id (only for TWEET entities). */
+  tweetIdByEntityRecord: Map<number, string>;
+  /** Entity record index → Twemoji SVG URL (only for TWEMOJI entities). */
+  twemojiUrlByEntityRecord: Map<number, string>;
   /** Entity record index → markdown (only for MARKDOWN entities). */
   markdownByEntityRecord: Map<number, string>;
   /** Block index → entity key of its atomic range. */
@@ -203,6 +220,36 @@ export function parseDraftJsContentState(html: string): DraftJsParseResult | nul
     });
   }
 
+  // TWEET entity data records are emitted in entity_map order.
+  const tweetIdByEntityRecord = new Map<number, string>();
+  {
+    let tweetIdx = 0;
+    const tweetIds: string[] = [];
+    for (const m of html.matchAll(TWEET_ID_RE)) tweetIds.push(m[1]!);
+    entityTypes.forEach((type, recordIdx) => {
+      if (type === 'TWEET') {
+        const id = tweetIds[tweetIdx];
+        if (id) tweetIdByEntityRecord.set(recordIdx, id);
+        tweetIdx++;
+      }
+    });
+  }
+
+  // TWEMOJI entity data records are emitted in entity_map order.
+  const twemojiUrlByEntityRecord = new Map<number, string>();
+  {
+    let emojiIdx = 0;
+    const emojiUrls: string[] = [];
+    for (const m of html.matchAll(TWEMOJI_URL_RE)) emojiUrls.push(m[1]!);
+    entityTypes.forEach((type, recordIdx) => {
+      if (type === 'TWEMOJI') {
+        const url = emojiUrls[emojiIdx];
+        if (url) twemojiUrlByEntityRecord.set(recordIdx, url);
+        emojiIdx++;
+      }
+    });
+  }
+
   // ── Atomic blocks → entity key (via their entity_ranges record) ───────────
   const atomicEntityKeyByBlock = new Map<number, number>();
   for (const m of html.matchAll(ENTITY_RANGE_BLOCK_RE)) {
@@ -245,6 +292,8 @@ export function parseDraftJsContentState(html: string): DraftJsParseResult | nul
     entityKeyToRecord,
     entityTypes,
     mediaIdByEntityRecord,
+    tweetIdByEntityRecord,
+    twemojiUrlByEntityRecord,
     markdownByEntityRecord,
     atomicEntityKeyByBlock,
     mentionsByBlock,
@@ -402,6 +451,26 @@ export function renderDraftJsMarkdown(
               : undefined;
           // The entity data holds the article's fenced code block verbatim.
           rendered = md && md.trim().length > 0 ? md : '---';
+        } else if (entityType === 'TWEET') {
+          // Embedded X post — a raw-HTML placeholder the rehype plugin
+          // (src/plugins/rehype-tweet-embed.ts) renders as the live widget.
+          const tweetId =
+            recordIdx !== undefined
+              ? parsed.tweetIdByEntityRecord.get(recordIdx)
+              : undefined;
+          rendered = tweetId
+            ? `<figure data-tweet-id="${tweetId}"></figure>`
+            : '---';
+        } else if (entityType === 'TWEMOJI') {
+          // Twemoji — an atomic block holding a small SVG emoji image. Render
+          // it inline so the emoji is not lost to the `---` fallback.
+          const emojiUrl =
+            recordIdx !== undefined
+              ? parsed.twemojiUrlByEntityRecord.get(recordIdx)
+              : undefined;
+          rendered = emojiUrl
+            ? `<img src="${emojiUrl}" alt="emoji" class="inline-emoji" />`
+            : '---';
         } else if (entityType === 'DIVIDER') {
           rendered = '---';
         } else {

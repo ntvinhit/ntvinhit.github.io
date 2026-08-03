@@ -214,7 +214,7 @@ Before anything is generated, every extracted workflow goes through the same obj
 
 Every workflow is evaluated against the following criteria.
 
----
+<img src="https://abs.twimg.com/emoji/v2/svg/2705.svg" alt="emoji" class="inline-emoji" />
 
 | Check              | Result |
 | ----------------- | :--: |

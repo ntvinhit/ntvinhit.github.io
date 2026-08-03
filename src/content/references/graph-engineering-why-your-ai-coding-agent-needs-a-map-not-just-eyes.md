@@ -21,7 +21,7 @@ My repo got smart the day I stopped making it read every file to answer one ques
 
 I've been running open-claude-skills for months now, and I actually contributed the --label-language CLI flag to Graphify, one of the tools this whole article is about. So this isn't theory I read somewhere. It's a thing I built with, then watched change how I work.
 
----
+<figure data-tweet-id="2080287312362324160"></figure>
 
 Graph engineering means building a persistent knowledge graph of your codebase, so an AI coding agent can query relationships instead of grepping through files one at a time. Every function, every call path, every import, mapped once and kept in sync. The agent asks a question and gets the answer shape back, not a pile of files it has to read cover to cover first.
 

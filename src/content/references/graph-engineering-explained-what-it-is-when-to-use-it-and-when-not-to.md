@@ -37,7 +37,7 @@ Telegram - [https://t.me/kopadzemp](https://t.me/kopadzemp)
 
 ---
 
----
+<figure data-tweet-id="2078277297791189132"></figure>
 
 ---
 
