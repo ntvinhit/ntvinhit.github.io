@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — clean, minimal, professional.
+ * Dark-mode friendly: the palette is tuned to read well on both light and
+ * dark backgrounds. Toggle `.dark` on <html> to switch; components opt in
+ * with dark: variants.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  --color-ink: #1a202c; /* primary text (light) */
+  --color-paper: #ffffff; /* page background (light) */
+  --color-muted: #5b6472; /* secondary text */
+  --color-accent: #2563eb; /* links, focus, small highlights */
+  --color-line: #e5e7eb; /* hairline borders */
+
+  --color-ink-dark: #e6e8eb; /* primary text (dark) */
+  --color-paper-dark: #0f1115; /* page background (dark) */
+  --color-muted-dark: #9aa3b2; /* secondary text (dark) */
+  --color-accent-dark: #60a5fa; /* links (dark) */
+  --color-line-dark: #262b33; /* hairline borders (dark) */
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper text-ink antialiased;
+    @apply dark:bg-paper-dark dark:text-ink-dark;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Smooth, legible link styling everywhere. */
+  a {
+    @apply text-accent underline decoration-accent/40 underline-offset-2 transition-colors;
+    @apply hover:text-accent/80 hover:decoration-accent/70;
+    @apply dark:text-accent-dark dark:decoration-accent-dark/40 dark:hover:text-accent-dark/90;
+  }
+
+  ::selection {
+    @apply bg-accent/15;
+  }
+}
+
+@layer components {
+  .prose-site {
+    @apply text-[1.05rem] leading-7 text-ink dark:text-ink-dark;
+  }
+
+  .prose-site h1,
+  .prose-site h2,
+  .prose-site h3,
+  .prose-site h4 {
+    @apply font-semibold tracking-tight text-ink dark:text-ink-dark;
+  }
+
+  .prose-site h1 {
+    @apply mt-0 mb-6 text-3xl font-bold;
+  }
+
+  .prose-site h2 {
+    @apply mt-10 mb-4 text-2xl;
+  }
+
+  .prose-site h3 {
+    @apply mt-8 mb-3 text-xl;
+  }
+
+  .prose-site p {
+    @apply my-4;
+  }
+
+  .prose-site ul,
+  .prose-site ol {
+    @apply my-4 pl-6;
+  }
+
+  .prose-site ul {
+    @apply list-disc;
+  }
+
+  .prose-site ol {
+    @apply list-decimal;
+  }
+
+  .prose-site li {
+    @apply my-1;
+  }
+
+  .prose-site blockquote {
+    @apply my-6 border-l-4 border-accent/40 pl-4 italic text-muted dark:text-muted-dark;
+  }
+
+  .prose-site code {
+    @apply rounded bg-black/5 px-1.5 py-0.5 font-mono text-[0.9em] text-accent dark:bg-white/10 dark:text-accent-dark;
+  }
+
+  .prose-site pre {
+    @apply my-6 overflow-x-auto rounded-lg bg-ink p-4 text-sm text-paper dark:bg-white/5 dark:text-ink-dark;
+  }
+
+  .prose-site pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+
+  .prose-site img {
+    @apply my-6 h-auto max-w-full rounded-lg;
+  }
+
+  .prose-site hr {
+    @apply my-8 border-line dark:border-line-dark;
+  }
+}

@@ -1,0 +1,64 @@
+---
+/**
+ * Language switcher for bilingual posts (see docs/posts-convention.md).
+ *
+ * Rendered on post pages that have BOTH an English and a Vietnamese variant.
+ * Shows an "EN | VI" toggle linking between the two variants of the same post:
+ *   - English: /posts/<canonical-slug>/        (the default)
+ *   - Vietnamese: /posts/<canonical-slug>/vi/
+ *
+ * Usage (on the post page):
+ *   <LanguageSwitcher
+ *     slug={postSlug(entry)}       // canonical, language-neutral slug
+ *     currentLang={entry.data.lang}
+ *   />
+ */
+interface Props {
+  slug: string;
+  currentLang: 'en' | 'vi';
+}
+
+const { slug, currentLang } = Astro.props;
+
+const LANG_LABEL: Record<'en' | 'vi', string> = { en: 'EN', vi: 'VI' };
+const LANG_NAME: Record<'en' | 'vi', string> = {
+  en: 'English',
+  vi: 'Tiếng Việt',
+};
+const LANG_URL: Record<'en' | 'vi', string> = {
+  en: `/posts/${slug}/`,
+  vi: `/posts/${slug}/vi/`,
+};
+---
+
+<div
+  class="mb-6 flex items-center gap-2"
+  role="group"
+  aria-label="Language"
+>
+  <span class="text-xs font-medium uppercase tracking-wide text-muted dark:text-muted-dark">
+    Language
+  </span>
+  <nav class="inline-flex overflow-hidden rounded-md border border-line dark:border-line-dark">
+    {
+      (['en', 'vi'] as const).map((lang) =>
+        lang === currentLang ? (
+          <span
+            aria-current="true"
+            class="bg-accent px-2.5 py-1 text-xs font-semibold text-white dark:bg-accent-dark dark:text-paper"
+            title={LANG_NAME[lang]}
+            >{LANG_LABEL[lang]}</span
+          >
+        ) : (
+          <a
+            href={LANG_URL[lang]}
+            class="px-2.5 py-1 text-xs font-semibold text-ink no-underline transition-colors hover:bg-accent/10 dark:text-ink-dark dark:hover:bg-accent-dark/10"
+            hreflang={lang}
+            title={LANG_NAME[lang]}
+            >{LANG_LABEL[lang]}</a
+          >
+        )
+      )
+    }
+  </nav>
+</div>

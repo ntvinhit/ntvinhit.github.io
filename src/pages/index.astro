@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { dedupePosts, postSlug, postUrl } from '../lib/posts';
+import { entrySlug } from '../lib/slug';
+import { getCollection } from 'astro:content';
+
+const dateFmt = new Intl.DateTimeFormat('en', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+// Recent posts + recent references, both filtered to published (non-draft, non-private).
+// Posts are deduped by canonical slug (one entry per post, English preferred).
+const publishedPosts = dedupePosts(
+  await getCollection('posts', ({ data }) => !data.draft && !data.private)
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const publishedReferences = (
+  await getCollection('references', ({ data }) => !data.draft && !data.private)
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const recentPosts = publishedPosts.slice(0, 5);
+const recentReferences = publishedReferences.slice(0, 5);
+---
+
+<BaseLayout title="Home">
+  <section class="mb-12">
+    <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-ink-dark">
+      Hi, I'm Vinh 👋
+    </h1>
+    <p class="mt-4 text-lg leading-relaxed text-muted dark:text-muted-dark">
+      This is my personal blog. I write about what I learn, and I mirror X
+      (Twitter) articles worth keeping around in the{' '}
+      <a href="/references/">References</a> section — always with full credit to
+      the original authors. My own writing lives in{' '}
+      <a href="/posts/">Posts</a>.
+    </p>
+  </section>
+
+  <section class="mb-12">
+    <div class="mb-4 flex items-baseline justify-between gap-4">
+      <h2 class="text-2xl font-semibold tracking-tight text-ink dark:text-ink-dark">
+        Recent posts
+      </h2>
+      <a href="/posts/" class="text-sm no-underline hover:underline"
+        >All posts →</a
+      >
+    </div>
+    {
+      recentPosts.length > 0 ? (
+        <ul class="divide-y divide-line dark:divide-line-dark">
+          {recentPosts.map((post) => (
+            <li class="py-4">
+              <a
+                href={postUrl(postSlug(post), post.data.lang)}
+                class="block text-lg font-medium text-ink no-underline hover:text-accent dark:text-ink-dark dark:hover:text-accent-dark"
+              >
+                {post.data.title}
+              </a>
+              <p class="mt-1 text-sm text-muted dark:text-muted-dark">
+                {dateFmt.format(post.data.date)}
+                {post.data.tags.length > 0 &&
+                  ` · ${post.data.tags.join(', ')}`}
+              </p>
+              {
+                post.data.description && (
+                  <p class="mt-1 text-sm text-muted dark:text-muted-dark">
+                    {post.data.description}
+                  </p>
+                )
+              }
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="text-muted dark:text-muted-dark">No published posts yet.</p>
+      )
+    }
+  </section>
+
+  <section>
+    <div class="mb-4 flex items-baseline justify-between gap-4">
+      <h2 class="text-2xl font-semibold tracking-tight text-ink dark:text-ink-dark">
+        Recent references
+      </h2>
+      <a href="/references/" class="text-sm no-underline hover:underline"
+        >All references →</a
+      >
+    </div>
+    {
+      recentReferences.length > 0 ? (
+        <ul class="divide-y divide-line dark:divide-line-dark">
+          {recentReferences.map((ref) => (
+            <li class="py-4">
+              <a
+                href={`/references/${entrySlug(ref)}/`}
+                class="block text-lg font-medium text-ink no-underline hover:text-accent dark:text-ink-dark dark:hover:text-accent-dark"
+              >
+                {ref.data.title}
+              </a>
+              <p class="mt-1 text-sm text-muted dark:text-muted-dark">
+                {ref.data.author.name} · @{ref.data.author.handle} ·{' '}
+                {dateFmt.format(ref.data.published_date)}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="text-muted dark:text-muted-dark">
+          No published references yet.
+        </p>
+      )
+    }
+  </section>
+</BaseLayout>

@@ -1,0 +1,67 @@
+---
+/**
+ * "Cited in" section for a reference page (bidirectional linking, reverse
+ * direction).
+ *
+ * Lists every PUBLIC post that cites this reference — via the post's
+ * `based_on` and/or `references` frontmatter arrays — as title + a small
+ * EN/VI language badge when the post is bilingual, each linking to
+ * /posts/<slug>/. Uses the same visual tokens as CreditBlock (rounded
+ * border, accent-tinted background, muted secondary text) and the badge
+ * styling of the EN · VI listing badge / LanguageSwitcher.
+ *
+ * Private and draft posts never appear here (filtered in
+ * src/lib/relationships.ts). Rendering is skipped entirely when no public
+ * post cites the reference.
+ */
+import { postUrl } from '../lib/posts';
+import type { CitingPost } from '../lib/relationships';
+
+interface Props {
+  posts: CitingPost[];
+}
+
+const { posts } = Astro.props;
+const heading = 'Cited in';
+const listId = 'reference-cited-in';
+---
+
+{
+  posts.length > 0 && (
+    <section
+      id={listId}
+      aria-labelledby={`${listId}-heading`}
+      class="mt-12 rounded-lg border border-line bg-accent/[0.04] p-5 dark:border-line-dark dark:bg-accent-dark/[0.06]"
+    >
+      <h2
+        id={`${listId}-heading`}
+        class="mb-3 text-sm font-semibold uppercase tracking-wide text-muted dark:text-muted-dark"
+      >
+        {heading}
+      </h2>
+      <ul class="space-y-2.5">
+        {posts.map((citing) => (
+          <li>
+            <a
+              href={postUrl(citing.slug, citing.entry.data.lang)}
+              class="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 no-underline transition-colors hover:opacity-80"
+            >
+              <span class="font-medium text-ink dark:text-ink-dark">
+                {citing.entry.data.title}
+              </span>
+              {
+                citing.bilingual && (
+                  <span
+                    class="rounded border border-accent/30 px-1.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-wide text-accent dark:border-accent-dark/40 dark:text-accent-dark"
+                    title="Available in English and Vietnamese"
+                    >EN · VI</span
+                  >
+                )
+              }
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

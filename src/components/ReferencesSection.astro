@@ -1,0 +1,64 @@
+---
+/**
+ * "References" section for a post page (bidirectional linking, forward
+ * direction).
+ *
+ * Lists every reference mirror the post cites — its `based_on` and/or
+ * `references` frontmatter arrays — as title + author @handle, each linking to
+ * /references/<slug>/. Uses the same visual tokens as CreditBlock
+ * (rounded border, accent-tinted background, muted secondary text).
+ *
+ * Pass in already-resolved reference entries; the caller skips missing
+ * targets (see src/lib/relationships.ts). Rendering is skipped entirely when
+ * the list is empty.
+ */
+import { entrySlug } from '../lib/slug';
+import type { ReferenceEntry } from '../lib/relationships';
+
+interface Props {
+  references: ReferenceEntry[];
+}
+
+const { references } = Astro.props;
+const heading = 'References';
+const listId = 'post-references';
+---
+
+{
+  references.length > 0 && (
+    <section
+      id={listId}
+      aria-labelledby={`${listId}-heading`}
+      class="mt-12 rounded-lg border border-line bg-accent/[0.04] p-5 dark:border-line-dark dark:bg-accent-dark/[0.06]"
+    >
+      <h2
+        id={`${listId}-heading`}
+        class="mb-3 text-sm font-semibold uppercase tracking-wide text-muted dark:text-muted-dark"
+      >
+        {heading}
+      </h2>
+      <ul class="space-y-2.5">
+        {references.map((reference) => {
+          const handle = reference.data.author.handle.replace(/^@/, '');
+          return (
+            <li>
+              <a
+                href={`/references/${entrySlug(reference)}/`}
+                class="block no-underline transition-colors hover:opacity-80"
+              >
+                <span class="block font-medium text-ink dark:text-ink-dark">
+                  {reference.data.title}
+                </span>
+                <span
+                  class="block text-sm text-muted dark:text-muted-dark"
+                >
+                  {reference.data.author.name} · @{handle}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )
+}

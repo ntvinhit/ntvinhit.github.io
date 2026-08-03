@@ -1,77 +1,119 @@
-## Nguyễn Trọng Vĩnh
+# Vinh N.T. — personal site
 
-![Nguyen Trong Vinh and his son!](./assets/cover-image.JPG)
+Personal blog and mirror of X (Twitter) articles worth keeping around. Built
+from scratch with **Astro 5**, **Bun**, and **Tailwind CSS v4** — no theme
+framework.
 
-### Front-end Engineer
+Deploys to <https://ntvinhit.github.io/> (GitHub Pages user site, root path).
 
-**Location:** Hanoi, Vietnam
+## Sections
 
-**Email:** [ntvinh.it@gmail.com](mailto:ntvinh.it@gmail.com)
+- **Home** — recent posts + recent references.
+- **References** — mirrored X articles. Each page shows the full article with a
+  credit block: original author, @handle, link to the original X post, publish
+  date on X, and a mirror banner noting that all rights belong to the original
+  author.
+- **Posts** — my own writing.
 
-**LinkedIn:** [https://www.linkedin.com/in/ntvinh-it/](https://www.linkedin.com/in/ntvinh-it/)
+## Stack
 
-**GitHub:** [github.com/ntvinhit](https://github.com/ntvinhit)
+| Piece    | Choice                                            |
+| -------- | ------------------------------------------------- |
+| Runtime  | [Bun](https://bun.sh) 1.3.x (`/Users/ntvinh/.bun/bin/bun`) |
+| Framework| [Astro](https://astro.build) 5.x (content collections)     |
+| Styling  | [Tailwind CSS](https://tailwindcss.com) v4 via `@tailwindcss/vite` |
+| Language | TypeScript / `.astro` components                  |
 
-### Summary
+## Commands
 
-Experienced Front-end Engineer with a strong background in web and mobile application development using JavaScript, TypeScript, ReactJS, React Native, and Electron. Skilled in building optimized NPM libraries, back-end development with NodeJS and PHP, and UX design. Proficient in team leadership, Git, and various tools and frameworks. Passionate about continuous learning and personal growth.
+```sh
+bun install     # install dependencies
+bun run dev     # start the dev server at http://localhost:4321
+bun run build   # build the static site into dist/
+bun run preview # preview the production build locally
+bunx astro check # type-check the project (incl. content collections)
 
-### Experience
+# Media pipeline — download & rehost images for an existing reference mirror
+bun scripts/download-reference-media.ts <slug>
 
-**Money Forward Vietnam** (Apr 2022 - Present)
+# Fallback tool — mirror an X article URL into src/content/references/ (needs
+# X_API_BEARER_TOKEN; see docs/reference-convention.md §10)
+bun run add-reference -- https://x.com/<handle>/status/<id>
+```
 
-*Principle Front-end Engineer*
+## Project structure
 
-- Led multiple projects as the Frontend Team Leader and "Part-time" Scrum Master.
-- Developed and maintained the MFUI (UI Unification) and Shared Components libraries.
-- Contributed to the Project Cost SaaS application using ReactJS, NextJS, and TypeScript.
-- Recognized as a Culture Hero for "Team Work" and a trusted member in key projects.
+```
+site/
+├── astro.config.mjs          # Astro config: site URL, base '/', publicDir 'public', Tailwind plugin
+├── tsconfig.json
+├── package.json
+├── public/                   # Astro static dir — served at '/' (committed; media is content)
+│   ├── cover-image.JPG
+│   └── references/<slug>/    # downloaded reference images
+├── scripts/                  # Bun scripts (agent-driven tasks)
+│   ├── download-reference-media.ts   # CLI: download + rewrite media for a reference
+│   ├── add-reference.ts              # fallback: fetch an X article URL + scaffold the mirror
+│   └── lib/
+│       ├── fetch-media.ts            # reusable downloader (downloadImages + URL normalization)
+│       ├── reference-media.ts        # body-rewrite + frontmatter pipeline
+│       └── frontmatter.ts            # minimal YAML-subset frontmatter parse/serialize
+└── src/
+    ├── content.config.ts     # content collections: 'references' + 'posts'
+    ├── content/
+    │   ├── references/       # mirrored X articles (markdown)
+    │   └── posts/            # own writing (markdown)
+    ├── layouts/BaseLayout.astro
+    ├── components/CreditBlock.astro
+    ├── pages/
+    │   ├── index.astro
+    │   ├── references/       # index + [...slug]
+    │   └── posts/            # index + [...slug]
+    └── styles/global.css     # Tailwind v4 + design tokens
+```
 
-**VMODev** (Jul 2021 - Mar 2022)
+## Content model
 
-*Full Stack JavaScript Developer / Frontend Team Leader*
+Both collections share: `title`, `slug` (derived from the file name when
+omitted), `date`, `lang` (`en` | `vi`), `private`, `draft`.
 
-- Developed an eCommerce platform and a healthcare mobile app for clients.
-- Provided team training, support, and interviewed candidates.
-- Awarded as an "Outstanding" member of 2021.
+- **References** (mirrors of X articles — full convention in
+  [`docs/reference-convention.md`](docs/reference-convention.md)) add:
+  `author` (nested `{ name, handle }`), `original_url`, `published_date`,
+  `fetched_date`, `has_attachments`, `images_original`, `description`,
+  `tags`. Each page renders a credit block at the bottom as a compact
+  attribution footer (author, @handle, link to the original article,
+  published date, mirror banner). Images are
+  downloaded to `public/references/<slug>/` by the media pipeline
+  (`bun scripts/download-reference-media.ts <slug>`); the body is rewritten
+  to local paths and the original URLs stay recoverable in
+  `<!-- image original: … -->` comments plus the `images_original` field.
+  Video URLs are kept as-is.
+- **Posts** add: `description`, `tags`, `translation_of` (the sibling-language
+  variant's canonical slug — see the bilingual convention in
+  [`docs/posts-convention.md`](docs/posts-convention.md)), and
+  `based_on` / `references` (reference slugs for bidirectional linking later).
 
-**Base Enterprise** (Dec 2018 - Jun 2021)
+Posts are **bilingual**: each post is one canonical identity with up to two
+variants (`en` default, `vi` alternate) that share a canonical slug derived
+from the file name (`my-note.md` + `my-note.vi.md` → `my-note`). Both variants
+render under the same URL — `/posts/<slug>/` (English) and `/posts/<slug>/vi/`
+(Vietnamese) — with an EN | VI switcher. See
+[`docs/posts-convention.md`](docs/posts-convention.md) for the full convention.
 
-*Mobile Team Leader*
+## Samples
 
-- Led a team to build mobile apps using ReactNative, ReactJS, and Flutter.
-- Developed desktop apps with Electron and contributed to policy decisions.
-- Achieved high usage of team apps (2500 active sessions per 30 minutes).
+`src/content/references/sample-event-pipeline.md` (public, full convention),
+`src/content/references/sample-private-note.md` (`private: true` filtering
+demo), and `src/content/posts/sample-building-this-site.md` are clearly
+marked sample entries used to verify rendering — safe to delete once real
+content lands.
 
-**HOSTVN** (Dec 2015 - Jul 2018)
+## Notes
 
-*Web - Server Developer*
-
-- Developed websites, landing pages, and server management modules.
-- Managed Linux servers and supported various teams.
-- Key member with lasting contributions to company functions.
-
-### Education
-
-**Hanoi University of Natural Resources & Environment** (Oct 2012 - May 2016)
-
-*Information Technology Engineer, GPA: 7.8/10*
-
-### Skills
-
-**Front-end:** JavaScript, TypeScript, ReactJS, React Native, Electron, Vite, Webpack, SASS/SCSS, Redux, styled-components, emotion
-
-**Back-end:** NodeJS, PHP, WordPress, Laravel, Express, NestJS, MySQL, Redis, Memcached, Apache Kafka
-
-**Other:** Firebase, Linux, Bash, Git, Docker, Kubernetes, Java/Kotlin, Python, Swift, AWS, ArgoCD, UX Design
-
-**Languages:** Vietnamese (Native), English (Advanced)
-
-### Projects
-
-- **MFUI and Shared Components** (Money Forward Vietnam): UI Unification and shared features across MF Products.
-- **Project Cost** (Money Forward Vietnam): SaaS application for project cost management.
-- **eCommerce Platform and Healthcare Mobile App** (VMODev): Developed for clients using ReactJS, NextJS, NestJS, and React Native.
-- [**Base.vn**](http://Base.vn) **Mobile and Desktop Apps**: Developed using React Native and Electron.
-- **HOSTVN Website and WHMCS Modules**: Developed the main website, server management modules, and web interface.
-
+- Site UI language is English; `lang` on entries lets us mark Vietnamese
+  content while keeping the UI English.
+- Static media lives in the committed `public/` folder (Astro serves it at
+  `/`). A top-level `assets/` directory would NOT be served — `cover-image.JPG`
+  was moved from `assets/` to `public/` accordingly.
+- No CI (GitHub Actions) yet — separate task.

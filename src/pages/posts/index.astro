@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { dedupePosts, groupPosts, postSlug, postUrl } from '../../lib/posts';
+import { getCollection } from 'astro:content';
+
+const dateFmt = new Intl.DateTimeFormat('en', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+// Each post is listed ONCE — group by canonical slug and prefer the English
+// variant (the default) for the title; dedupePosts does exactly that. The
+// group is used to show a language badge when both variants exist.
+const groups = groupPosts(
+  await getCollection('posts', ({ data }) => !data.draft && !data.private)
+).sort(
+  (a, b) =>
+    (b.variants.en ?? b.variants.vi!).data.date.valueOf() -
+    (a.variants.en ?? a.variants.vi!).data.date.valueOf()
+);
+
+const posts = dedupePosts(groups.map((g) => g.variants.en ?? g.variants.vi!));
+const groupsBySlug = new Map(groups.map((g) => [g.slug, g]));
+---
+
+<BaseLayout title="Posts">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold tracking-tight text-ink dark:text-ink-dark">
+      Posts
+    </h1>
+    <p class="mt-2 text-muted dark:text-muted-dark">
+      My own writing — notes, deep dives, and things I've learned.
+    </p>
+  </div>
+
+  {
+    posts.length > 0 ? (
+      <ul class="divide-y divide-line dark:divide-line-dark">
+        {posts.map((post) => {
+          const slug = postSlug(post);
+          const group = groupsBySlug.get(slug)!;
+          const hasTranslation =
+            Boolean(group.variants.en) && Boolean(group.variants.vi);
+          return (
+            <li class="py-5">
+              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <a
+                  href={postUrl(slug, post.data.lang)}
+                  class="block text-xl font-medium text-ink no-underline hover:text-accent dark:text-ink-dark dark:hover:text-accent-dark"
+                >
+                  {post.data.title}
+                </a>
+                {
+                  hasTranslation && (
+                    <span
+                      class="rounded border border-accent/30 px-1.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-wide text-accent dark:border-accent-dark/40 dark:text-accent-dark"
+                      title="Available in English and Vietnamese"
+                      >EN · VI</span
+                    >
+                  )
+                }
+              </div>
+              <p class="mt-1 text-sm text-muted dark:text-muted-dark">
+                {dateFmt.format(post.data.date)}
+                {post.data.tags.length > 0 && ` · ${post.data.tags.join(', ')}`}
+              </p>
+              {
+                post.data.description && (
+                  <p class="mt-2 text-sm text-muted dark:text-muted-dark">
+                    {post.data.description}
+                  </p>
+                )
+              }
+            </li>
+          );
+        })}
+      </ul>
+    ) : (
+      <p class="text-muted dark:text-muted-dark">No published posts yet.</p>
+    )
+  }
+</BaseLayout>

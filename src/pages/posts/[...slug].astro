@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LanguageSwitcher from '../../components/LanguageSwitcher.astro';
+import ReferencesSection from '../../components/ReferencesSection.astro';
+import { postSlug, findTranslation } from '../../lib/posts';
+import { resolvePostReferences } from '../../lib/relationships';
+import { getCollection, render } from 'astro:content';
+
+/**
+ * Post pages — bilingual model (see docs/posts-convention.md).
+ *
+ * URL scheme (both variants are statically built):
+ *   /posts/<canonical-slug>/       English variant (the default)
+ *   /posts/<canonical-slug>/vi/    Vietnamese variant
+ *
+ * The canonical slug is language-neutral and shared by both variants. When
+ * both variants exist the page shows the EN | VI language switcher linking
+ * between the two URLs; a post with a single language gets no switcher.
+ */
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+
+  // Validate each variant's translation_of points at a sibling variant with
+  // the same canonical slug and the other language.
+  const bySlug = new Map<string, typeof posts>();
+  for (const entry of posts) {
+    const slug = postSlug(entry);
+    const list = bySlug.get(slug) ?? [];
+    list.push(entry);
+    bySlug.set(slug, list);
+  }
+  for (const entry of posts) {
+    const translationOf = entry.data.translation_of;
+    if (!translationOf) continue;
+    const siblings = (bySlug.get(translationOf) ?? []).filter(
+      (candidate) =>
+        candidate.id !== entry.id && candidate.data.lang !== entry.data.lang
+    );
+    if (siblings.length === 0) {
+      console.warn(
+        `[posts] ${entry.id}: translation_of (${translationOf}) has no matching ${entry.data.lang === 'en' ? 'vi' : 'en'} variant.`
+      );
+    }
+  }
+
+  return posts.map((entry) => {
+    const slug = postSlug(entry);
+    return {
+      // Two static routes per post variant, sharing the same canonical slug:
+      //   /posts/<slug>/        -> entry (en, or a lone vi variant)
+      //   /posts/<slug>/vi/     -> entry (only for vi variants)
+      params: { slug: entry.data.lang === 'vi' ? `${slug}/vi` : slug },
+      props: { entry },
+    };
+  });
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const allPosts = await getCollection('posts');
+const translation = findTranslation(entry, allPosts);
+const hasTranslation = Boolean(translation);
+const currentLang = entry.data.lang;
+
+// Bidirectional linking: references this post cites (based_on + references),
+// rendered as a "References" section after the content. Missing targets are
+// warned about and skipped by resolvePostReferences — never crash the build.
+const allReferences = await getCollection('references');
+const citedReferences = resolvePostReferences(entry, allReferences);
+
+const dateFmt = new Intl.DateTimeFormat('en', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  lang={currentLang}
+>
+  <article>
+    <header class="mb-8 border-b border-line pb-6 dark:border-line-dark">
+      <p class="mb-3 text-sm font-medium uppercase tracking-wide text-accent dark:text-accent-dark">
+        Post
+      </p>
+      <h1 class="text-3xl font-bold tracking-tight text-ink dark:text-ink-dark">
+        {entry.data.title}
+      </h1>
+      <p class="mt-3 text-sm text-muted dark:text-muted-dark">
+        {dateFmt.format(entry.data.date)}
+        {entry.data.tags.length > 0 && ` · ${entry.data.tags.join(', ')}`}
+      </p>
+    </header>
+
+    {
+      hasTranslation && (
+        <LanguageSwitcher slug={postSlug(entry)} currentLang={currentLang} />
+      )
+    }
+
+    <div class="prose-site">
+      <Content />
+    </div>
+
+    <ReferencesSection references={citedReferences} />
+
+    <p class="mt-8">
+      <a href="/posts/" class="text-sm no-underline hover:underline"
+        >← All posts</a
+      >
+    </p>
+  </article>
+</BaseLayout>

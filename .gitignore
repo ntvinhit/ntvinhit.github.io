@@ -1,1 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.astro/
+
+# Editor / OS
 .idea/
+.DS_Store
+
+# Logs
+*.log

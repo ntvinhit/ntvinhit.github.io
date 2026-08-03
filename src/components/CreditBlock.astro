@@ -1,0 +1,77 @@
+---
+/**
+ * Attribution footer for a mirrored X (Twitter) article.
+ *
+ * Required by the reference convention (docs/reference-convention.md §6) and
+ * rendered at the BOTTOM of every reference page — after the article body and
+ * the "Cited in" section, before the "← All references" back-link — so the
+ * mirrored content stays the visual focus. It is a slim, muted footer rather
+ * than a prominent panel:
+ *   - author name
+ *   - @handle, linking to https://x.com/<handle>
+ *   - "Original article" link to the original X article
+ *   - published date (when it was published on X)
+ *   - the mirror banner (constant text, tiny footnote-style line)
+ *
+ * Usage:
+ *   <CreditBlock
+ *     author={entry.data.author}
+ *     originalUrl={entry.data.original_url}
+ *     publishedDate={entry.data.published_date}
+ *   />
+ */
+
+const MIRROR_BANNER =
+  'Mirrored from X for personal reference. All rights belong to the original author.';
+
+interface Props {
+  author: { name: string; handle: string };
+  originalUrl: string;
+  publishedDate: Date;
+}
+
+const { author, originalUrl, publishedDate } = Astro.props;
+
+const handle = author.handle.replace(/^@/, '');
+const handleWithAt = `@${handle}`;
+const profileUrl = `https://x.com/${handle}`;
+
+const publishedLabel = new Intl.DateTimeFormat('en', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+}).format(publishedDate);
+---
+
+<footer
+  class="mt-10 border-t border-line pt-4 text-sm text-muted dark:border-line-dark dark:text-muted-dark"
+  role="note"
+  aria-label="Credit and source information"
+>
+  <p class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+    <span class="font-medium">{author.name}</span>
+    <a
+      href={profileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="no-underline hover:text-accent dark:hover:text-accent-dark"
+      >{handleWithAt}</a
+    >
+    <span aria-hidden="true">·</span>
+    <span>Published on X: {publishedLabel}</span>
+  </p>
+
+  <p class="mt-1 min-w-0">
+    <span class="font-medium">Original article:</span>{' '}
+    <a
+      href={originalUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="break-all no-underline hover:underline"
+      >{originalUrl}</a
+    >
+  </p>
+
+  <p class="mt-1.5 text-xs opacity-70">{MIRROR_BANNER}</p>
+</footer>

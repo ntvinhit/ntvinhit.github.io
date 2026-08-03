@@ -1,0 +1,102 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CreditBlock from '../../components/CreditBlock.astro';
+import CitedInSection from '../../components/CitedInSection.astro';
+import { entrySlug } from '../../lib/slug';
+import { postsCitingReferences } from '../../lib/relationships';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const references = await getCollection('references');
+  return references.map((entry) => ({
+    params: { slug: entrySlug(entry) },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const dateFmt = new Intl.DateTimeFormat('en', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+const { author } = entry.data;
+const authorLabel = `${author.name} (@${author.handle.replace(/^@/, '')})`;
+
+// Bidirectional linking, reverse direction: public posts that cite this
+// reference (based_on + references). Private/draft posts are filtered out by
+// postsCitingReferences, so a hidden post never leaks into this listing.
+const citingPosts = postsCitingReferences(
+  await getCollection('posts')
+).get(entrySlug(entry)) ?? [];
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={`Mirrored X article by ${authorLabel}.`}
+>
+  <article>
+    <header class="mb-8 border-b border-line pb-6 dark:border-line-dark">
+      <p class="mb-3 text-sm font-medium uppercase tracking-wide text-accent dark:text-accent-dark">
+        Reference
+      </p>
+      <h1 class="text-3xl font-bold tracking-tight text-ink dark:text-ink-dark">
+        {entry.data.title}
+      </h1>
+      <p class="mt-3 text-sm text-muted dark:text-muted-dark">
+        Mirrored on {dateFmt.format(entry.data.date)}
+      </p>
+    </header>
+
+    {
+      /*
+        Article cover — rendered between the title and the article body,
+        mirroring how X shows the article cover at the top of an article.
+        `cover_image` is set by the media pipeline
+        (docs/reference-convention.md §4): a local path
+        `/references/<slug>/<file>` when the download succeeded, or the
+        original remote URL as a fallback. Constrained width — never
+        full-bleed. The credit block follows at the bottom of the article as
+        the attribution footer.
+      */
+      entry.data.cover_image && (
+        <img
+          src={entry.data.cover_image}
+          alt={entry.data.title}
+          width="1200"
+          height="480"
+          loading="eager"
+          class="mb-8 h-auto max-w-[640px] rounded-lg border border-line object-cover dark:border-line-dark"
+        />
+      )
+    }
+
+    <div class="prose-site">
+      <Content />
+    </div>
+
+    <CitedInSection posts={citingPosts} />
+
+    {/*
+      Attribution footer goes LAST, after the "Cited in" section and just
+      before the back-link — the mirrored article stays the visual focus and
+      the credit reads as a slim supporting footer. It is rendered by
+      CreditBlock as a compact, muted block (see reference-convention.md §6).
+    */}
+    <CreditBlock
+      author={author}
+      originalUrl={entry.data.original_url}
+      publishedDate={entry.data.published_date}
+    />
+
+    <p class="mt-8">
+      <a href="/references/" class="text-sm no-underline hover:underline"
+        >← All references</a
+      >
+    </p>
+  </article>
+</BaseLayout>

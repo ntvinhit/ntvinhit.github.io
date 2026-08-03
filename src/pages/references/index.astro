@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { entrySlug } from '../../lib/slug';
+import { getCollection } from 'astro:content';
+
+const dateFmt = new Intl.DateTimeFormat('en', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+// Public listings only show published entries — draft and private are hidden.
+const references = (
+  await getCollection('references', ({ data }) => !data.draft && !data.private)
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="References">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold tracking-tight text-ink dark:text-ink-dark">
+      References
+    </h1>
+    <p class="mt-2 text-muted dark:text-muted-dark">
+      X (Twitter) articles mirrored here for personal reference. All content
+      belongs to the original authors — see the credit block on each page.
+    </p>
+  </div>
+
+  {
+    references.length > 0 ? (
+      <ul class="divide-y divide-line dark:divide-line-dark">
+        {references.map((ref) => {
+          const handle = ref.data.author.handle.replace(/^@/, '');
+          return (
+            <li class="py-5">
+              <a
+                href={`/references/${entrySlug(ref)}/`}
+                class="block text-xl font-medium text-ink no-underline hover:text-accent dark:text-ink-dark dark:hover:text-accent-dark"
+              >
+                {ref.data.title}
+              </a>
+              <p class="mt-1 text-sm text-muted dark:text-muted-dark">
+                {ref.data.author.name} · @{handle} ·{' '}
+                {dateFmt.format(ref.data.published_date)}
+              </p>
+              {ref.data.description && (
+                <p class="mt-1 text-sm text-muted dark:text-muted-dark">
+                  {ref.data.description}
+                </p>
+              )}
+              {ref.data.tags.length > 0 && (
+                <p class="mt-1 text-sm text-muted dark:text-muted-dark">
+                  {ref.data.tags.join(' · ')}
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    ) : (
+      <p class="text-muted dark:text-muted-dark">
+        No published references yet.
+      </p>
+    )
+  }
+</BaseLayout>
