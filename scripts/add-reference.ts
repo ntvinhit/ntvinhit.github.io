@@ -122,6 +122,9 @@ interface ApiTweet {
   lang?: string;
   note_tweet?: { text?: string };
   attachments?: { media_keys?: string[] };
+  // X Articles (long-form) come back with an `article` object carrying the
+  // real title and the full plain-text body. Prefer these over heuristics.
+  article?: { title?: string; plain_text?: string };
 }
 
 interface ApiResponse {
@@ -332,7 +335,7 @@ export function buildFrontmatter(input: {
 }): string {
   const fm: Frontmatter = {
     title: input.title,
-    date: input.publishedDate,
+    date: input.fetchedDate, // mirror date (convention §1); published_date holds the original publish date
     lang: input.lang,
     private: input.private,
     draft: input.draft,
@@ -590,7 +593,14 @@ async function run(): Promise<void> {
     fail(`the X API returned no post data for id ${postId}.`, 2);
   }
 
-  const articleText = tweet.note_tweet?.text?.trim() ?? tweet.text?.trim() ?? '';
+  // X Articles return their real title + full body via `article`; regular
+  // note-tweets fall back to the heuristic first-title-line.
+  const article = tweet.article;
+  const articleText =
+    article?.plain_text?.trim() ??
+    tweet.note_tweet?.text?.trim() ??
+    tweet.text?.trim() ??
+    '';
   if (!articleText) {
     fail(
       `post ${postId} has no article/note content (is it a long-form article?). ` +
@@ -599,7 +609,7 @@ async function run(): Promise<void> {
     );
   }
 
-  const title = firstTitleLine(articleText) || `X article ${postId}`;
+  const title = article?.title?.trim() || firstTitleLine(articleText) || `X article ${postId}`;
   const slug = slugify(title);
   const today = toIsoDate(new Date());
   const published = tweet.created_at

@@ -363,9 +363,9 @@ bun run add-reference -- --help                                        # usage
 
 | Field              | How the script fills it                                        |
 | ------------------ | -------------------------------------------------------------- |
-| `title`            | First non-empty line of the article text                       |
+| `title`            | X API `article.title` when present, else the first non-empty line of the article text |
 | `slug`             | Slugified title (§2)                                           |
-| `date` / `fetched_date` | Today                                                 |
+| `date` / `fetched_date` | Today (mirror date — `date` is the mirror date per §1) |
 | `published_date`   | Post `created_at` (falls back to today if absent)              |
 | `lang`             | Post `lang`, mapped to `'en' \| 'vi'` (anything else → `'en'`) |
 | `author`           | `includes.users` — `name` + `username` (falls back to "Unknown author" / "unknown") |
