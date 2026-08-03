@@ -17,8 +17,6 @@ images_original: ["https://pbs.twimg.com/media/HOnD5PZbYAAh9fu.jpg", "https://pb
 cover_image: "/references/graph-engineering-why-your-ai-coding-agent-needs-a-map-not-just-eyes/HOnD5PZbYAAh9fu.jpg"
 ---
 
-
-
 My repo got smart the day I stopped making it read every file to answer one question.
 
 I've been running open-claude-skills for months now, and I actually contributed the --label-language CLI flag to Graphify, one of the tools this whole article is about. So this isn't theory I read somewhere. It's a thing I built with, then watched change how I work.
@@ -29,7 +27,7 @@ Graph engineering means building a persistent knowledge graph of your codebase, 
 
 ![Image](/references/graph-engineering-why-your-ai-coding-agent-needs-a-map-not-just-eyes/HOnIW1AakAAC68v.jpg) <!-- image original: https://pbs.twimg.com/media/HOnIW1AakAAC68v.jpg -->
 
-Why this actually matters
+## Why this actually matters
 
 Every AI coding agent works inside a context window. That window fills up fast on a real codebase.
 
@@ -39,7 +37,7 @@ The gap only gets wider as the codebase grows.
 
 ![Image](/references/graph-engineering-why-your-ai-coding-agent-needs-a-map-not-just-eyes/HOnLL4ZacAAL5ml.jpg) <!-- image original: https://pbs.twimg.com/media/HOnLL4ZacAAL5ml.jpg -->
 
-Setting it up for Codex CLI
+## Setting it up for Codex CLI
 
 I went with CodeGraph here since it wires into Codex CLI directly, alongside a bunch of other agents, with one installer.
 
@@ -64,7 +62,7 @@ That single command builds the local graph and turns on auto-sync. From here, Co
 
 ![Image](/references/graph-engineering-why-your-ai-coding-agent-needs-a-map-not-just-eyes/HOnIwqzb0AAmBsm.jpg) <!-- image original: https://pbs.twimg.com/media/HOnIwqzb0AAmBsm.jpg -->
 
-Setting it up for Antigravity
+## Setting it up for Antigravity
 
 Antigravity is Google's agent-first IDE, built on a modified VS Code, and it's where Graphify actually shines, since Graphify was built with multi-agent orchestration in mind.
 
@@ -87,7 +85,7 @@ That second command generates four things: an interactive graph.html you can act
 
 ![Image](/references/graph-engineering-why-your-ai-coding-agent-needs-a-map-not-just-eyes/HOnI_xUa4AAVKkS.jpg) <!-- image original: https://pbs.twimg.com/media/HOnI_xUa4AAVKkS.jpg -->
 
-The part I actually built
+## The part I actually built
 
 The --label-language flag came out of a annoyance, not a grand plan.
 
@@ -97,7 +95,7 @@ It's a tiny contribution. It's also the first time an open-source PR of mine shi
 
 ![Image](/references/graph-engineering-why-your-ai-coding-agent-needs-a-map-not-just-eyes/HOnJGCzaAAEOG_-.png) <!-- image original: https://pbs.twimg.com/media/HOnJGCzaAAEOG_-.png -->
 
-Getting the most out of it
+## Getting the most out of it
 
 The single biggest mistake is treating the graph as a suggestion instead of the answer.
 
@@ -107,7 +105,7 @@ Run updates as part of your normal flow instead of as an afterthought. CodeGraph
 
 ![Image](/references/graph-engineering-why-your-ai-coding-agent-needs-a-map-not-just-eyes/HOnLAVCbgAA7MqP.jpg) <!-- image original: https://pbs.twimg.com/media/HOnLAVCbgAA7MqP.jpg -->
 
-Where it actually breaks
+## Where it actually breaks
 
 The cost savings people quote are real, but they're scale-dependent, not universal.
 
@@ -117,7 +115,7 @@ None of this replaces reading the diff yourself before you merge it.
 
 ![Image](/references/graph-engineering-why-your-ai-coding-agent-needs-a-map-not-just-eyes/HOnK1IzaAAAzMQ9.jpg) <!-- image original: https://pbs.twimg.com/media/HOnK1IzaAAAzMQ9.jpg -->
 
-Why I'm still doing this
+## Why I'm still doing this
 
 I'm heading into a BTech CSE program soon, and graph engineering is the first time I've built something that other agents, not just me, actually query.
 

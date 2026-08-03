@@ -41,7 +41,7 @@ Telegram - [https://t.me/kopadzemp](https://t.me/kopadzemp)
 
 ---
 
-1 - Where this even came from.
+## 1 - Where this even came from.
 
 A month ago the whole field was talking about loops. Then Peter Steinberger posted the line above, and a corner of the internet that had just finished learning loops declared them old news overnight.
 
@@ -53,7 +53,7 @@ And engineers pushed back on the hype within hours, pointing out this is a decad
 
 ---
 
-2 - What a graph actually is.
+## 2 - What a graph actually is.
 
 A graph is just a plan for your AI work, drawn out so you can see it. It answers two questions: which jobs need to happen, and which job has to wait for which.
 
@@ -85,7 +85,7 @@ WHY:     a defined output is what lets the next node read this one
 
 ---
 
-3 - The test that finds the fake edges.
+## 3 - The test that finds the fake edges.
 
 Look at the AI workflow you run today and walk it step by step. At each step, ask one thing: does this step actually need the result of the one before it?
 
@@ -101,7 +101,7 @@ You will find two or three of these fake edges in almost any workflow you draw. 
 
 ---
 
-4 - Your current setup is already a graph.
+## 4 - Your current setup is already a graph.
 
 When you write an agent as "do A, then B, then C, then D," you have technically already drawn a graph. It is just the saddest possible one: a single straight chain where every node has one arrow in and one arrow out.
 
@@ -115,7 +115,7 @@ The model was never the bottleneck. The line you drew was.
 
 ---
 
-5 - The one pattern that pays: the diamond.
+## 5 - The one pattern that pays: the diamond.
 
 You do not need a hundred shapes. Watch any serious agent system work and the same picture keeps appearing. The work splits, several workers dig side by side, something checks what they found, and everything merges back into one answer.
 
@@ -178,7 +178,7 @@ Read it once and the whole craft is visible: the fan-out where work is independe
 
 ---
 
-6 - The checker is the whole trick.
+## 6 - The checker is the whole trick.
 
 Now the part almost everyone skips, and it is what separates a real graph from an expensive toy.
 
@@ -216,7 +216,7 @@ The rule to remember: a worker and its verifier must never share a context. The 
 
 ---
 
-7 - Where graphs actually break.
+## 7 - Where graphs actually break.
 
 ---
 
@@ -273,7 +273,7 @@ if (results.length < jobs.length) {
 
 ---
 
-8 - Do you even need one?
+## 8 - Do you even need one?
 
 As tradition goes for my articles, let's honestly figure out who this could even be useful for.
 
@@ -296,7 +296,7 @@ Skip the graph when:
 
 ---
 
-9 - The part nobody wants to hear: anchors.
+## 9 - The part nobody wants to hear: anchors.
 
 There is a deeper trap here, and it is the real lesson of this whole shift.
 
@@ -326,7 +326,7 @@ Judge it on numbers that cannot argue back and it stays grounded. Let it grade i
 
 ---
 
-10 - Build one yourself in Claude Code.
+## 10 - Build one yourself in Claude Code.
 
 Enough theory. If you have decided this is for you, or you just want to try it, let's build one. You can build a real graph in a couple of minutes, because Claude Code shipped the tooling to do it directly, called dynamic workflows.
 
@@ -373,7 +373,7 @@ Notice the "20 files" cap in that prompt. It keeps your first run cheap, and it 
 
 ---
 
-11 - Ready graphs you can paste right away.
+## 11 - Ready graphs you can paste right away.
 
 Every one of these is the same diamond aimed at a different job. Open Claude Code in a real folder, swap the bracketed parts for your own, and paste. The word "workflow" is what tells Claude to build a coordinated fleet instead of a single line of steps. Keep yourself as the last yes before anything ships.
 
@@ -477,7 +477,7 @@ Run one scoped, watch what it costs, then widen. When a run is good, save it, an
 
 ---
 
-12 - The cost and the supervision.
+## 12 - The cost and the supervision.
 
 A graph costs more than a normal chat. A lot more. The coordination is what gets cheaper, not the work itself. The agents still burn tokens, and a fleet of them burns a pile.
 
@@ -493,7 +493,7 @@ So the heavy version is for teams with the budget, the caps, and the monitoring 
 
 ---
 
-13 - What this actually means for you.
+## 13 - What this actually means for you.
 
 That is the whole picture. You now know what a graph is, where it shines, where it breaks, and who it is actually for.
 

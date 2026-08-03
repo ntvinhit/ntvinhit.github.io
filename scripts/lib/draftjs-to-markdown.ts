@@ -429,7 +429,10 @@ export function renderDraftJsMarkdown(
     // Non-list text blocks flush any pending lists.
     flushLists();
 
-    if (type === 'header-one') {
+    // Any DraftJS header block (header-one/header-two/...) becomes a `##`
+    // section heading. X articles never nest below the page title (h1), so a
+    // single heading level is correct regardless of the source level.
+    if (type.startsWith('header-')) {
       out.push(`## ${renderTextBlock(index, text)}`);
     } else if (type === 'unstyled') {
       const rendered = renderTextBlock(index, text);
