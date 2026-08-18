@@ -6,6 +6,7 @@ private: false
 draft: false
 description: "Diễn giải lại bài 'Graph Engineering: The Complete Guide to Building Multi-Agent AI Systems' của Lunar theo phong cách TL;DR + chi tiết, kèm hình gốc."
 tags: ["agents", "multi-agent", "graph-engineering", "orchestration", "workflows"]
+translation_of: "graph-engineering-explained"
 based_on: ["graph-engineering-the-complete-guide-to-building-multi-agent-ai-systems"]
 references: []
 ---
