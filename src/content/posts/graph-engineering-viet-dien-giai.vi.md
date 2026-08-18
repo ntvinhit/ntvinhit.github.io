@@ -1,5 +1,5 @@
 ---
-title: "Graph Engineering diễn giải — Xây hệ thống multi-agent như một đồ thị"
+title: "Graph Engineering diễn giải — Xây hệ thống multi-agent như một Graph"
 date: 2026-08-18
 lang: "vi"
 private: false
@@ -36,6 +36,24 @@ chúng được viết theo thứ tự đó.
 Ba bước đầu **không cần nhau** — chúng chỉ cần xong trước bước 4.
 
 **Cách nghĩ đúng:** vẽ dependency thực sự, không phải thứ tự viết.
+
+**Graph SAI — chạy tuần tự vì được viết tuần tự:**
+```
+inspect pricing → inspect reviews → inspect docs → write brief
+```
+Đây là một đường thẳng. Ba bước đầu không phụ thuộc nhau, nhưng vẫn phải chờ nhau
+→ tốn `t1 + t2 + t3` trước khi tới bước 4.
+
+**Graph ĐÚNG — chỉ giữ dependency thật:**
+```
+inspect pricing ──────┐
+                      │
+inspect reviews ──────┼──→ write brief
+                      │
+inspect docs ─────────┘
+```
+Ba bước đầu chạy song song, chỉ cần chờ bước chậm nhất `max(t1, t2, t3)` rồi gộp
+vào bước 4. Cùng một công việc, nhưng tổng thời gian giảm hẳn.
 
 **Câu hỏi quyết định:** *"Thông tin nào phải tồn tại trước khi bước này bắt đầu
 được?"*
@@ -94,7 +112,7 @@ researcher." → giờ cạnh có nghĩa.
 **Vấn đề:** Phát hiện chạy song song được → phóng đại: 20 worker → 200 → 2000.
 Graph rộng ra, **hóa đơn cũng rộng ra**.
 
-**Chi phí ẩn khi đồ thị quá rộng:**
+**Chi phí ẩn khi Graph quá rộng:**
 - research trùng lặp
 - output mâu thuẫn
 - rate limit
